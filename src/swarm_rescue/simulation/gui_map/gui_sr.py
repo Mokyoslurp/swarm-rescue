@@ -18,7 +18,7 @@ from swarm_rescue.simulation.utils.fps_display import FpsDisplay
 from swarm_rescue.simulation.utils.mouse_measure import MouseMeasure
 from swarm_rescue.simulation.utils.visu_noises import VisuNoises
 from swarm_rescue.simulation.utils.window_utils import auto_resize_window
-from swarm_rescue.simulation.utils.my_utils.DataVisualize import DataVisualize
+from swarm_rescue.simulation.utils.my_utils.DataLogger import DataLogger
 
 
 class GuiSR(TopDownView):
@@ -92,7 +92,7 @@ class GuiSR(TopDownView):
             enable_visu_noises: bool = False,
             filename_video_capture: str = None,
             headless: bool = False,
-            data: DataVisualize = None,
+            datalogger: DataLogger = None,
     ) -> None:
         """
         Initialize the GuiSR graphical user interface.
@@ -209,7 +209,7 @@ class GuiSR(TopDownView):
 
         self.recorder = ScreenRecorder(self._size[0], self._size[1], fps=30,
                                        out_file=filename_video_capture)
-        self._data = data
+        self._datalogger = datalogger
 
     def close(self) -> None:
         """
@@ -414,12 +414,6 @@ class GuiSR(TopDownView):
         for drone in self._playground.agents:
             drone.draw_top_layer()
 
-        # Record GPS data
-        for drone in self._playground.agents:
-            self._data._drones.append(drone)  # Ensure drone is tracked
-            self._data.true_gps_points.append([drone.true_position()[0], drone.true_position()[1]])
-            self._data.measured_gps_points.append([drone.measured_gps_position()[0], drone.measured_gps_position()[1]])
-
         # display a circle representing semantic detection radius
         # width, height = self._size
         # drone = self._playground.agents[0]
@@ -432,6 +426,10 @@ class GuiSR(TopDownView):
         #     arcade.draw_line(x, y, x + 200 * cos(r + i * (2 * pi / 34)),
         #     y + 200 * sin(r + i * (2 * pi / 34)), (60, 120, 80))
         # # endregion
+
+        # Record all data
+        self._datalogger.record_all_data(self._playground.agents)
+
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         """

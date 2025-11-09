@@ -22,7 +22,7 @@ from swarm_rescue.simulation.gui_map.closed_playground import ClosedPlayground
 from swarm_rescue.simulation.gui_map.gui_sr import GuiSR
 from swarm_rescue.simulation.gui_map.map_abstract import MapAbstract
 from swarm_rescue.simulation.utils.misc_data import MiscData
-from swarm_rescue.simulation.utils.my_utils.DataVisualize import DataVisualize
+from swarm_rescue.simulation.utils.my_utils.DataLogger import DataLogger
 
 
 class MyDroneKeyboard(DroneAbstract):
@@ -117,8 +117,8 @@ def main():
     print_keyboard_man()
     the_map = MyMapKeyboard(drone_type=MyDroneKeyboard)
 
-    data = DataVisualize(plot_gps_data=True,
-                        plot_mag_data=False,
+    datalogger = DataLogger(plot_gps_data=True,
+                        plot_mag_data=True,
                         simulation_score=False,
                         )
 
@@ -128,11 +128,11 @@ def main():
                 draw_lidar_rays=True,
                 draw_semantic_rays=True,
                 use_keyboard=True,
-                data=data,
+                datalogger=datalogger,
                 )
     gui.run()
     
-    data.display()
+    datalogger.display()
 
     score_health_returned = the_map.compute_score_health_returned()
     print("score_health_returned = ", score_health_returned)
