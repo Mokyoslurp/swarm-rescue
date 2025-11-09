@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class DataLogger:
@@ -20,6 +21,10 @@ class DataLogger:
             simulation_score (bool): Print the final score for the simulation.
             true_gps_points (List[Tuple[float, float]]): List to store true GPS points.
             measured_gps_points (List[Tuple[float, float]]): List to store measured GPS points.
+            true_mag_points (List[float]): List to store true magnetic angle points.
+            measured_mag_points (List[float]): List to store measured magnetic angle points.
+            true_velocity_points (List[float]): List to store true velocity points.
+            true_angular_velocity_points (List[float]): List to store true angular velocity points.
         """
 
         self.plot_gps_data = plot_gps_data
@@ -65,7 +70,7 @@ class DataLogger:
         # Plot X coordinates
         axes[0].plot(true_x_coords, label='X coordinates')
         axes[0].plot(measured_x_coords, label='Measured X coordinates')
-        axes[0].set_ylabel('X')
+        axes[0].set_ylabel('X coordinates (m)')
         axes[0].legend()
         axes[0].grid(True)
 
@@ -73,27 +78,72 @@ class DataLogger:
         axes[1].plot(true_y_coords, label='Y coordinates')
         axes[1].plot(measured_y_coords, label='Measured Y coordinates')
         axes[1].set_xlabel('Index')
-        axes[1].set_ylabel('Y')
+        axes[1].set_ylabel('Y coordinates (m)')
         axes[1].legend()
         axes[1].grid(True)
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])
 
+        # Calculate errors
+        errors = np.sqrt((np.array(true_x_coords) - np.array(measured_x_coords)) ** 2 + (np.array(true_y_coords) - np.array(measured_y_coords)) ** 2)
+        errors = errors[~np.isnan(errors)]
+
+        # Calculate error statistics
+        avg_error = np.mean(errors)
+        max_error = np.max(np.abs(errors))
+        std_error = np.std(errors)
+        rmse = np.sqrt(np.mean(errors ** 2))
+
+        # Print error statistics
+        print("\n")
+        print("===================================")
+        print("GPS Error Statistics:")
+        print(f"  Average error: {avg_error:.3f}m")
+        print(f"  Max error: {max_error:.3f}m")
+        print(f"  Std deviation: {std_error:.3f}m")
+        print(f"  RMSE: {rmse:.3f}m")
+        print("===================================")
+
 
     def plot_mag(self):
         """Placeholder for magnetic data visualization."""
+        # Convert to numpy arrays for easier calculations
+        true_mag_points = np.array(self.true_mag_points) * (180.0 / np.pi)  # Convert to degrees
+        measured_mag_points = np.array(self.measured_mag_points) * (180.0 / np.pi)  # Convert to degrees
+
         # Create figure with two subplots
         fig, ax = plt.subplots(figsize=(8, 6))
         fig.suptitle("Magnetic Angle Data")
 
         # Plot X coordinates
-        ax.plot(self.true_mag_points, label='True angles')
-        ax.plot(self.measured_mag_points, label='Measured angles')
-        ax.set_ylabel('X')
+        ax.plot(true_mag_points, label='True angles(°)')
+        ax.plot(measured_mag_points, label='Measured angles(°)')
+        ax.set_xlabel('Index')
+        ax.set_ylabel('Angle (°)')
         ax.legend()
         ax.grid(True)
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+        # Calculate  errors
+        errors = true_mag_points - measured_mag_points
+        errors = errors[~np.isnan(errors)]
+
+        # Calculate error statistics
+        avg_error = np.mean(errors)
+        max_error = np.max(np.abs(errors))
+        std_error = np.std(errors)
+        rmse = np.sqrt(np.mean(errors ** 2))
+
+        # Print error statistics
+        print("\n")
+        print("===================================")
+        print("Magnetic Angle Error Statistics:")
+        print(f"  Average error: {avg_error:.3f}°")
+        print(f"  Max error: {max_error:.3f}°")
+        print(f"  Std deviation: {std_error:.3f}°")
+        print(f"  RMSE: {rmse:.3f}°")
+        print("===================================")
         
 
     def display_score(self):

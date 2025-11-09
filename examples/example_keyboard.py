@@ -114,7 +114,7 @@ def print_keyboard_man():
 
 
 def main():
-    print_keyboard_man()
+    #print_keyboard_man()
     the_map = MyMapKeyboard(drone_type=MyDroneKeyboard)
 
     datalogger = DataLogger(plot_gps_data=True,
