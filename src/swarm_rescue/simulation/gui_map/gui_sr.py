@@ -18,6 +18,7 @@ from swarm_rescue.simulation.utils.fps_display import FpsDisplay
 from swarm_rescue.simulation.utils.mouse_measure import MouseMeasure
 from swarm_rescue.simulation.utils.visu_noises import VisuNoises
 from swarm_rescue.simulation.utils.window_utils import auto_resize_window
+from swarm_rescue.simulation.utils.my_utils.DataVisualize import DataVisualize
 
 
 class GuiSR(TopDownView):
@@ -91,12 +92,14 @@ class GuiSR(TopDownView):
             enable_visu_noises: bool = False,
             filename_video_capture: str = None,
             headless: bool = False,
+            data: DataVisualize = None,
     ) -> None:
         """
         Initialize the GuiSR graphical user interface.
 
         Args:
             the_map (MapAbstract): The map object containing the playground and drones.
+            data (DataVisualize): Data visualization object for recording data.
             size (Optional[Tuple[int, int]]): Size of the window.
             center (Tuple[float, float]): Center of the view.
             zoom (float): Zoom factor.
@@ -206,6 +209,7 @@ class GuiSR(TopDownView):
 
         self.recorder = ScreenRecorder(self._size[0], self._size[1], fps=30,
                                        out_file=filename_video_capture)
+        self._data = data
 
     def close(self) -> None:
         """
@@ -409,6 +413,12 @@ class GuiSR(TopDownView):
 
         for drone in self._playground.agents:
             drone.draw_top_layer()
+
+        # Record GPS data
+        for drone in self._playground.agents:
+            self._data._drones.append(drone)  # Ensure drone is tracked
+            self._data.true_gps_points.append([drone.true_position()[0], drone.true_position()[1]])
+            self._data.measured_gps_points.append([drone.measured_gps_position()[0], drone.measured_gps_position()[1]])
 
         # display a circle representing semantic detection radius
         # width, height = self._size
