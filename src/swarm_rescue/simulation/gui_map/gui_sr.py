@@ -352,6 +352,9 @@ class GuiSR(TopDownView):
             self._last_image = self.get_playground_image()
             arcade.close_window()
 
+        # Record all data
+        self._datalogger.record_all_data(self._playground.agents, self._drones_commands)
+
     def get_playground_image(self) -> cv2.typing.MatLike:
         """
         Get the image of the playground in the framebuffer.
@@ -426,9 +429,6 @@ class GuiSR(TopDownView):
         #     arcade.draw_line(x, y, x + 200 * cos(r + i * (2 * pi / 34)),
         #     y + 200 * sin(r + i * (2 * pi / 34)), (60, 120, 80))
         # # endregion
-
-        # Record all data
-        self._datalogger.record_all_data(self._playground.agents)
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
