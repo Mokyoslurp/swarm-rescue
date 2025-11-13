@@ -2,6 +2,10 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from swarm_rescue.solutions.my_solution.estimators.filter_parameters import (
+    FilterParameters,
+)
+
 
 class ExtendedKalmanFilter(ABC):
     """EKF standard implmentation"""
@@ -11,6 +15,7 @@ class ExtendedKalmanFilter(ABC):
         Q: np.ndarray,
         R: np.ndarray,
         X0: np.ndarray,
+        param: FilterParameters,
     ):
         """Initializes an ExtendedKalmanFilter
 
@@ -30,6 +35,9 @@ class ExtendedKalmanFilter(ABC):
         self.Q = Q
         # Measure covariance
         self.R = R
+
+        # EKF parameters
+        self.param = param
 
     def step(
         self,
