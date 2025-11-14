@@ -105,7 +105,7 @@ class ExtendedKalmanFilter(ABC):
 
         # Covariance prediction
         F = self.state_model_jacobian(u)
-        self.p = F @ self.P @ F.T + self.Q
+        self.P = F @ self.P @ F.T + self.Q
 
     def correct(self, y: np.ndarray):
         """Makes a corrective step and saves the new state
