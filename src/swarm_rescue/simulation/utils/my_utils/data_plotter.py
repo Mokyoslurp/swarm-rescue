@@ -83,3 +83,42 @@ class DataPlotter:
         ax.grid(True)
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+    def plot_speed(
+        self,
+        estimated_vx: Optional[np.ndarray] = None,
+        estimated_vy: Optional[np.ndarray] = None,
+    ):
+        """Plots the true, measured and estimated speed if provided
+
+        Args:
+            estimated_vx (Optional[np.ndarray]): the estimated x speed
+            estimated_vy (Optional[np.ndarray]): teh estimated y speed
+        """
+
+        # Create figure with two subplots
+        fig, ax = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+        fig.suptitle("Odometer Speed Data")
+
+        # Plot X coordinates
+        ax[0].plot(self.data["true_vx"], label="Vx speed")
+        ax[0].plot(self.data["measured_vx"], label="Measured Vx speed")
+        if estimated_vx is not None:
+            ax[0].plot(estimated_vx, label="Estimated Vx speed")
+
+        ax[0].set_ylabel("Vx speed (m)")
+        ax[0].legend()
+        ax[0].grid(True)
+
+        # Plot Y speed
+        ax[1].plot(self.data["true_vy"], label="Vy speed")
+        ax[1].plot(self.data["measured_vy"], label="Measured Vy speed")
+        if estimated_vy is not None:
+            ax[1].plot(estimated_vy, label="Estimated Vy speed")
+
+        ax[1].set_xlabel("Index")
+        ax[1].set_ylabel("Vy speed (m)")
+        ax[1].legend()
+        ax[1].grid(True)
+
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
