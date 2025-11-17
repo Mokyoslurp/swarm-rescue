@@ -122,3 +122,33 @@ class DataPlotter:
         ax[1].grid(True)
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+    def plot_angular_speed(self, estimated_omega: Optional[np.ndarray] = None):
+        """Plots the true, measured, and estimated angle if provided
+
+        Args:
+            estimated_omega (Optional[np.ndarray], optional): estimated angle data.
+                Defaults to None.
+        """
+        # Conversion to degrees
+        true_omega = np.array(self.data["true_omega"]) * (180.0 / np.pi)
+        measured_omega = np.array(self.data["measured_omega"]) * (180.0 / np.pi)
+
+        # Create figure with two subplots
+        fig, ax = plt.subplots(figsize=(8, 6))
+        fig.suptitle("Odometer Angular Speed Data")
+
+        # Plot X coordinates
+        ax.plot(true_omega, label="True angular speed(°/s)")
+        ax.plot(measured_omega, label="Measured angular speed(°/s)")
+
+        if estimated_omega is not None:
+            estimated_omega = np.array(estimated_omega) * (180.0 / np.pi)
+            ax.plot(estimated_omega, label="Estimated angular speed(°/s)")
+
+        ax.set_xlabel("Index")
+        ax.set_ylabel("Angular speed (°/s)")
+        ax.legend()
+        ax.grid(True)
+
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
