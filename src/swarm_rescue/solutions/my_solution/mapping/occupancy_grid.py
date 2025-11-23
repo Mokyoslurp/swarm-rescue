@@ -4,6 +4,8 @@ from swarm_rescue.simulation.ray_sensors.drone_lidar import DroneLidar
 from swarm_rescue.simulation.utils.constants import MAX_RANGE_LIDAR_SENSOR
 from swarm_rescue.simulation.utils.grid import Grid
 from swarm_rescue.simulation.utils.pose import Pose
+from swarm_rescue.solutions.my_solution.mapping.frontier import Frontier
+from swarm_rescue.solutions.my_solution.mapping.vertex import Vertex
 
 
 EVERY_N = 3
@@ -92,3 +94,67 @@ class OccupancyGrid(Grid):
             new_zoomed_size,
             interpolation=cv2.INTER_NEAREST,  # pylint: disable=no-member
         )
+
+    def get_frontiers(self) -> list[Frontier]:
+        """Computes a list of frontiers in the grid
+
+        Returns:
+            list[Frontier]: Tthe frontiers
+        """
+        matrix = self.grid
+
+        points: set[Vertex] = set([])
+        frontiers: list[Frontier] = []
+
+        for x, row in enumerate(matrix):
+            for y, element in enumerate(row):
+                if element == 0:
+                    combinations = [
+                        (x - 1, y),
+                        (x + 1, y),
+                        (x, y - 1),
+                        (x, y + 1),
+                        (x - 1, y + 1),
+                        (x + 1, y + 1),
+                        (x - 1, y - 1),
+                        (x + 1, y - 1),
+                    ]
+                    for i, j in combinations:
+                        try:
+                            if matrix[i][j] < 0:
+                                points.add(Vertex(i, j))
+                        except IndexError:
+                            pass
+
+        def get_closest_frontier(frontiers: list[Frontier], point: Vertex):
+            for frontier in frontiers:
+                if frontier.is_close_to_point(point):
+                    return frontier
+            return None
+
+        for point in points:
+            frontier = get_closest_frontier(frontiers, point)
+            if frontier is not None:
+                frontier.add_point(point)
+            else:
+                frontiers.append(Frontier([point]))
+
+        return frontiers
+
+    def get_obstacles(self) -> list[tuple[int, int, float]]:
+        """Gets the obstacles of the grid
+
+        Returns:
+            list[tuple[int, int, float]]: a list of tuples contianing x and y coordinates of
+                the obstacles and the associated value in the grid
+        """
+        matrix = self.grid
+
+        obstacle_list = []
+        for row in range(len(matrix)):
+            for col in range(len(matrix[row, :])):
+                if matrix[row, col] >= 0:
+                    # y_obs, x_obs = col, row
+                    y_obs, x_obs = row, col
+                    obstacle_list.append((x_obs, y_obs, 1.0))  # [x, y, obstacle_radius]
+        return obstacle_list
