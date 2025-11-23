@@ -103,19 +103,20 @@ class OccupancyGrid(Grid):
         Returns:
             list[Frontier]: Tthe frontiers
         """
-        matrix = self.grid
 
         points: set[Vertex] = set([])
         frontiers: list[Frontier] = []
 
-        for x, row in enumerate(matrix):
-            for y, element in enumerate(row):
-                if element == 0:
+        n_row = len(self.grid)
+        n_col = len(self.grid[0, :])
+        for x in range(n_row):
+            for y in range(n_col):
+                if self.is_empty(x, y):
                     delta = [-1, 0, 1]
                     for i in delta:
                         for j in delta:
                             try:
-                                if not self.is_occupied(x + i, y + j):
+                                if self.is_free(x + i, y + j):
                                     points.add(Vertex(x + i, y + j))
                             except IndexError:
                                 pass
@@ -171,14 +172,26 @@ class OccupancyGrid(Grid):
 
         n_row = len(self.grid)
         n_col = len(self.grid[0, :])
-        for row in range(len(n_row)):
-            for col in range(len(n_col)):
-                if not self.is_occupied(row, col):
+        for row in range(n_row):
+            for col in range(n_col):
+                if self.is_free(row, col):
                     map_graph = self.add_edges_around(row, col, map_graph)
                 else:
                     pass
 
         return map_graph
+
+    def is_empty(self, x: int, y: int) -> bool:
+        """Checks if the value at the coordinates is not yet explored in the grid
+
+        Args:
+            x (int): x coordinate of the point
+            y (int): y coordinate of the point
+
+        Returns:
+            bool: True if the value is 0, False either
+        """
+        return self.grid[x, y] == 0
 
     def is_occupied(self, x: int, y: int) -> bool:
         """Checks if the value at the coordinates is occupied in the grid
@@ -188,11 +201,21 @@ class OccupancyGrid(Grid):
             y (int): y coordinate of the point
 
         Returns:
+            bool: True if the value is positive, False either
+        """
+        return self.grid[x, y] > 0
+
+    def is_free(self, x: int, y: int) -> bool:
+        """Checks if the value at the coordinates is free in the grid
+
+        Args:
+            x (int): x coordinate of the point
+            y (int): y coordinate of the point
+
+        Returns:
             bool: True if the value is negative, False either
         """
-        if self.grid[x, y] > 0:
-            return True
-        return False
+        return self.grid[x, y] < 0
 
     def add_edges_around(self, x: int, y: int, map_graph: GraphADT) -> GraphADT:
         """Adds all possible edges to the graph, departing from coordinates in the grid
@@ -211,7 +234,7 @@ class OccupancyGrid(Grid):
         for i in delta:
             for j in delta:
                 try:
-                    if not self.is_occupied(x + i, y + j):
+                    if self.is_free(x + i, y + j):
                         # Avoid putting an edge with 0 value in the graph
                         if i != 0 and j != 0:
                             # Connect (x, y) and (x+i, y+j) in the graph
@@ -244,7 +267,7 @@ class OccupancyGrid(Grid):
         for dr in indices:
             for dc in indices:
                 try:
-                    if not self.is_occupied(point.x + dr, point.y + dc) < 0:
+                    if self.is_free(point.x + dr, point.y + dc):
                         if dr != 0 and dc != 0:
                             freepoints.append(Vertex(point.x + dc, point.y + dr))
                             distances = np.append(
