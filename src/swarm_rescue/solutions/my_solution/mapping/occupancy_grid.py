@@ -70,9 +70,8 @@ class OccupancyGrid(Grid):
         # For obstacle zones, all values of lidar_dist are < max_range
         select_collision = lidar_dist < max_range
 
-        alpha = 0.8
-        points_x = pose.position[0] + np.multiply(alpha * lidar_dist, cos_rays)
-        points_y = pose.position[1] + np.multiply(alpha * lidar_dist, sin_rays)
+        points_x = pose.position[0] + np.multiply(lidar_dist, cos_rays)
+        points_y = pose.position[1] + np.multiply(lidar_dist, sin_rays)
 
         points_x = points_x[select_collision]
         points_y = points_y[select_collision]
@@ -241,7 +240,7 @@ class OccupancyGrid(Grid):
                             map_graph.append(
                                 Vertex(x, y),
                                 Vertex(x + i, y + j),
-                                math.sqrt(i**2 + j**2),
+                                1,
                             )
 
                 # Accounts for boundary indices
