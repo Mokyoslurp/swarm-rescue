@@ -1,3 +1,4 @@
+import math
 import cv2
 import numpy as np
 from swarm_rescue.simulation.ray_sensors.drone_lidar import DroneLidar
@@ -6,6 +7,7 @@ from swarm_rescue.simulation.utils.grid import Grid
 from swarm_rescue.simulation.utils.pose import Pose
 from swarm_rescue.solutions.my_solution.mapping.frontier import Frontier
 from swarm_rescue.solutions.my_solution.mapping.vertex import Vertex
+from swarm_rescue.solutions.my_solution.planning.graph import GraphADT
 
 
 EVERY_N = 3
@@ -109,22 +111,14 @@ class OccupancyGrid(Grid):
         for x, row in enumerate(matrix):
             for y, element in enumerate(row):
                 if element == 0:
-                    combinations = [
-                        (x - 1, y),
-                        (x + 1, y),
-                        (x, y - 1),
-                        (x, y + 1),
-                        (x - 1, y + 1),
-                        (x + 1, y + 1),
-                        (x - 1, y - 1),
-                        (x + 1, y - 1),
-                    ]
-                    for i, j in combinations:
-                        try:
-                            if matrix[i][j] < 0:
-                                points.add(Vertex(i, j))
-                        except IndexError:
-                            pass
+                    delta = [-1, 0, 1]
+                    for i in delta:
+                        for j in delta:
+                            try:
+                                if not self.is_occupied(x + i, y + j):
+                                    points.add(Vertex(x + i, y + j))
+                            except IndexError:
+                                pass
 
         def get_closest_frontier(frontiers: list[Frontier], point: Vertex):
             for frontier in frontiers:
@@ -153,8 +147,114 @@ class OccupancyGrid(Grid):
         obstacle_list = []
         for row in range(len(matrix)):
             for col in range(len(matrix[row, :])):
-                if matrix[row, col] >= 0:
+                if self.is_occupied(row, col):
                     # y_obs, x_obs = col, row
                     y_obs, x_obs = row, col
                     obstacle_list.append((x_obs, y_obs, 1.0))  # [x, y, obstacle_radius]
         return obstacle_list
+
+    def to_graph(self, start: Vertex, end: Vertex) -> GraphADT:
+        """Creates a Graph from the grid
+
+        Args:
+            start (Vertex): the start position in the grid
+            end (Vertex): the end position in the grid
+
+        Returns:
+            GraphADT: the graph created
+        """
+
+        map_graph = GraphADT()
+        map_graph = self.add_edges_around(start.x, start.y, map_graph)
+
+        map_graph = self.add_edges_around(end.x, end.y, map_graph)
+
+        n_row = len(self.grid)
+        n_col = len(self.grid[0, :])
+        for row in range(len(n_row)):
+            for col in range(len(n_col)):
+                if not self.is_occupied(row, col):
+                    map_graph = self.add_edges_around(row, col, map_graph)
+                else:
+                    pass
+
+        return map_graph
+
+    def is_occupied(self, x: int, y: int) -> bool:
+        """Checks if the value at the coordinates is occupied in the grid
+
+        Args:
+            x (int): x coordinate of the point
+            y (int): y coordinate of the point
+
+        Returns:
+            bool: True if the value is negative, False either
+        """
+        if self.grid[x, y] > 0:
+            return True
+        return False
+
+    def add_edges_around(self, x: int, y: int, map_graph: GraphADT) -> GraphADT:
+        """Adds all possible edges to the graph, departing from coordinates in the grid
+
+        Args:
+            x (int): x coordinate of the departure point
+            y (int): y coordinate of the departure point
+            map_graph (GraphADT): the graph to add the points to
+
+        Returns:
+            GraphADT: the graph with the points added
+        """
+        # Checks all points around the specified coordinates
+        delta = [-1, 0, 1]
+
+        for i in delta:
+            for j in delta:
+                try:
+                    if not self.is_occupied(x + i, y + j):
+                        # Avoid putting an edge with 0 value in the graph
+                        if i != 0 and j != 0:
+                            # Connect (x, y) and (x+i, y+j) in the graph
+                            map_graph.append(
+                                Vertex(x, y),
+                                Vertex(x + i, y + j),
+                                math.sqrt(i**2 + j**2),
+                            )
+
+                # Accounts for boundary indices
+                except IndexError:
+                    pass
+
+        return map_graph
+
+    def get_nearest_freepoint(self, point: Vertex, delta: int = 3) -> Vertex:
+        """Returns a point in the grid that is free and the closest possible to the specified point
+
+        Args:
+            point (Vertex): the original point, normally not free
+            delta (int, optional): the delta of coordinates to check. Defaults to 3.
+
+        Returns:
+            Vertex: the nearest free point
+        """
+        freepoints: list[Vertex] = []
+        distances = np.array([])
+
+        indices = np.linspace(-delta, delta, 2 * delta + 1).astype(int)
+        for dr in indices:
+            for dc in indices:
+                try:
+                    if not self.is_occupied(point.x + dr, point.y + dc) < 0:
+                        if dr != 0 and dc != 0:
+                            freepoints.append(Vertex(point.x + dc, point.y + dr))
+                            distances = np.append(
+                                distances, [math.hypot(abs(dr), abs(dc))]
+                            )
+                except IndexError:
+                    pass
+
+        if freepoints:
+            index = np.argmin(distances)
+            new_end = freepoints[index]
+            return new_end
+        return None
