@@ -178,6 +178,9 @@ class OccupancyGrid(Grid):
         map_graph = GraphADT()
         map_graph = self.add_edges_around(start.x, start.y, map_graph)
 
+        if not self.is_free(end.x, end.y):
+            end = self.get_nearest_freepoint(end)
+
         map_graph = self.add_edges_around(end.x, end.y, map_graph)
 
         n_row = len(self.grid)
