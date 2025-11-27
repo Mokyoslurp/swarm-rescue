@@ -10,6 +10,7 @@ from swarm_rescue.simulation.ray_sensors.drone_semantic_sensor import (
     DroneSemanticSensor,
 )
 from swarm_rescue.simulation.utils.utils import circular_mean
+from swarm_rescue.solutions.my_solution.controllers.pid_controller import PIDController
 
 from swarm_rescue.solutions.my_solution.drone_pose import DronePose
 from swarm_rescue.solutions.my_solution.drone_template import DroneTemplate
@@ -30,6 +31,7 @@ class StateNames(Enum):
 
 class State(ABC):
     rescue_center_pose: Optional[DronePose] = None
+    controller = PIDController(Kp=(1.6, 9.0), Ki=(2, 2), Kd=(8.0, 0.6))
 
     @abstractmethod
     def get_command(self, drone: DroneTemplate) -> tuple[CommandsDict, StateNames]: ...
@@ -45,17 +47,10 @@ class State(ABC):
         }
 
         if pose is not None:
-            # P controller
-            forward = 0.2 * np.clip(pose.x - drone.pose.x, -1.0, 1.0)
-            lateral = 0.2 * np.clip(pose.y - drone.pose.y, -1.0, 1.0)
-            rotation = 0.2 * np.clip(pose.orientation - drone.pose.orientation, -1, 1)
+            self.controller.setpoint = pose
+            command = self.controller.get_command(drone.pose)
 
-            command: CommandsDict = {
-                "forward": forward,
-                "lateral": lateral,
-                "rotation": rotation,
-                "grasper": grasper,
-            }
+            command["grasper"] = grasper
 
         return command
 
