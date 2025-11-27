@@ -23,7 +23,7 @@ class DronePose(Pose):
 
     @classmethod
     def from_vertex(cls, vertex: Vertex) -> Self:
-        return Pose(position=np.array([vertex.x, vertex.y]))
+        return DronePose(position=np.array([vertex.x, vertex.y]))
 
     @classmethod
     def from_vertices(cls, vertices: list[Vertex]) -> list[Pose]:
