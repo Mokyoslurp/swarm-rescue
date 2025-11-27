@@ -5,6 +5,7 @@ from swarm_rescue.simulation.utils.utils import clamp, normalize_angle
 from swarm_rescue.solutions.my_solution.controllers.abstract_controller import (
     AbstractController,
 )
+from swarm_rescue.solutions.my_solution.drone_pose import DronePose
 
 
 class PIDController(AbstractController):
@@ -23,13 +24,15 @@ class PIDController(AbstractController):
         self.cumulated_error = (0, 0, 0)
         self.previous_error = (0, 0, 0)
 
-    def get_command(self, current_pose: tuple[float, float, float]) -> CommandsDict:
+    def get_command(self, current_pose: DronePose) -> CommandsDict:
         # If no setpoint, return a static command
         if self.setpoint is not None:
             # Extract errors
-            x_error = self.setpoint[0] - current_pose[0]
-            y_error = self.setpoint[1] - current_pose[1]
-            r_error = float(normalize_angle(self.setpoint[2] - current_pose[2]))
+            x_error = self.setpoint.x - current_pose.x
+            y_error = self.setpoint.y - current_pose.y
+            r_error = float(
+                normalize_angle(self.setpoint.orientation - current_pose.orientation)
+            )
 
             # Commands computation
             x_command = (
@@ -57,8 +60,8 @@ class PIDController(AbstractController):
             self.previous_error = [x_error, y_error, r_error]
 
             # Transform commands in drone frame
-            cos_r = np.cos(current_pose[2])
-            sin_r = np.sin(current_pose[2])
+            cos_r = np.cos(current_pose.orientation)
+            sin_r = np.sin(current_pose.orientation)
             forward = cos_r * x_command + sin_r * y_command
             lateral = cos_r * y_command - sin_r * x_command
 
