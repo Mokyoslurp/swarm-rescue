@@ -130,6 +130,27 @@ class EKF1(ExtendedKalmanFilter):
         )
         return C
 
+    def correct(self, y: np.ndarray):
+        """Makes a corrective step and saves the new state
+
+        :param y: the true measurements from the drone
+        :type y: np.ndarray
+        """
+        if y[0] is not None and y[1] is not None and y[2] is not None:
+            # Innovation
+            z = y - self.measure_model()
+
+            # Kalman gain
+            H = self.measure_model_jacobian()
+            S = H @ self.P @ H.T + self.R
+            K = self.P @ H.T @ np.linalg.inv(S)
+
+            # State update
+            self.X = self.X + K @ z
+
+            # Covariance update
+            self.P = self.P - K @ H @ self.P
+
     def step(
         self,
         command: np.ndarray,
