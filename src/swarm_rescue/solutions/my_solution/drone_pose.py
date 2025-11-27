@@ -40,5 +40,14 @@ class DronePose(Pose):
             )
         return self
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, DronePose):
+            return (
+                self.x == other.x
+                and self.y == other.y
+                and self.orientation == other.orientation
+            )
+        return False
+
     def __str__(self) -> str:
         return f"X = {self.x} ; Y = {self.y}"
