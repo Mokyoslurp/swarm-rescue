@@ -11,9 +11,9 @@ from swarm_rescue.solutions.my_solution.planning.graph import GraphADT
 
 
 EVERY_N = 3
-LIDAR_DIST_CLIP = 40.0
+LIDAR_DIST_CLIP = 20.0
 EMPTY_ZONE_VALUE = -0.602
-OBSTACLE_ZONE_VALUE = 2.0
+OBSTACLE_ZONE_VALUE = 5.0
 FREE_ZONE_VALUE = -4.0
 THRESHOLD_MIN = -40
 THRESHOLD_MAX = 40
