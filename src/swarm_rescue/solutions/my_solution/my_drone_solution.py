@@ -3,8 +3,8 @@ from swarm_rescue.maps.map_intermediate_01 import MapIntermediate01
 
 
 from swarm_rescue.simulation.drone.controller import CommandsDict
-from swarm_rescue.simulation.elements.sensor_disablers import ZoneType
 from swarm_rescue.simulation.gui_map.gui_sr import GuiSR
+from swarm_rescue.simulation.utils.utils import deg2rad
 
 from swarm_rescue.solutions.my_solution.drone_pose import DronePose
 from swarm_rescue.solutions.my_solution.drone_template import DroneTemplate
@@ -17,7 +17,9 @@ class MyDroneSolution(DroneTemplate):
         super().__init__(**kwargs)
 
         self.state_machine = StateMachine()
-        self.kalman_filter = EKF1()
+        self.kalman_filter = EKF1(
+            R=np.square(np.diag([0.5, 0.5, deg2rad(4.0)])),
+        )
         self.previous_command = np.array([0.0, 0.0, 0.0])
 
     def define_message_for_all(self): ...
