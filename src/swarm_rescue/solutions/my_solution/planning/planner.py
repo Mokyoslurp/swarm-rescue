@@ -106,13 +106,15 @@ class Planner:
             # Closest frontier
             min_i = 0
 
-            # min_distance = np.inf
-            # for i, frontier in enumerate(frontiers):
-            #     barycenter = frontier.barycenter()
-            #     distance = (barycenter.x - x) ** 2 + (barycenter.y - y) ** 2
-            #     if distance < min_distance:
-            #         min_i = i
-            #         min_distance = distance
+            max_score = 0
+            for i, frontier in enumerate(frontiers):
+                barycenter = frontier.barycenter()
+                distance = (barycenter.x - x) ** 2 + (barycenter.y - y) ** 2
+                size = len(frontier.points)
+                score = size - distance / 100
+                if score > max_score:
+                    min_i = i
+                    max_score = score
 
             next_frontier = frontiers[min_i]
             end = next_frontier.barycenter()
