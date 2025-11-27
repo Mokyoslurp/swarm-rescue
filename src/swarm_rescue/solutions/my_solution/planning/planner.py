@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 
 from swarm_rescue.solutions.my_solution.drone_pose import DronePose
@@ -25,7 +26,12 @@ class Planner:
 
         self.current_pose_rounded: DronePose = DronePose(np.array([0, 0]), 0)
 
-    def get_next_pose(self, current_pose: DronePose, grid: OccupancyGrid) -> DronePose:
+    def get_next_pose(
+        self,
+        current_pose: DronePose,
+        grid: OccupancyGrid,
+        goal: Optional[DronePose] = None,
+    ) -> DronePose:
         """Gets the next pose the drone should go to
 
         Args:
@@ -42,15 +48,15 @@ class Planner:
 
         recomputed_path = False
 
-        if len(self.current_path) == 0:
-            self.compute_new_path(current_pose, grid)
+        if len(self.current_path) == 0 or (goal is not None and goal != self.path_end):
+            self.compute_new_path(current_pose, grid, goal)
 
         if (
             self.path_end is not None
             and current_pose.distance_squared(self.path_end)
             <= self.distance_threshold**2
         ):
-            self.compute_new_path(current_pose, grid)
+            self.compute_new_path(current_pose, grid, goal)
 
         if self.counter == self.counter_limit:
             self.counter = 0
@@ -73,7 +79,10 @@ class Planner:
         return current_pose
 
     def compute_new_path(
-        self, current_pose: DronePose, grid: OccupancyGrid, goal: DronePose = None
+        self,
+        current_pose: DronePose,
+        grid: OccupancyGrid,
+        goal: Optional[DronePose] = None,
     ) -> list[DronePose]:
         """Computes a path to a chosen frontier
 
