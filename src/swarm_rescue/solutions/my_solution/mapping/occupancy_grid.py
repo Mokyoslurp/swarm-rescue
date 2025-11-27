@@ -235,7 +235,7 @@ class OccupancyGrid(Grid):
                 try:
                     if self.is_free(x + i, y + j):
                         # Avoid putting an edge with 0 value in the graph
-                        if i != 0 and j != 0:
+                        if i != 0 or j != 0:
                             # Connect (x, y) and (x+i, y+j) in the graph
                             map_graph.append(
                                 Vertex(x, y),
@@ -267,7 +267,7 @@ class OccupancyGrid(Grid):
             for dc in indices:
                 try:
                     if self.is_free(point.x + dr, point.y + dc):
-                        if dr != 0 and dc != 0:
+                        if dr != 0 or dc != 0:
                             freepoints.append(Vertex(point.x + dc, point.y + dr))
                             distances = np.append(
                                 distances, [math.hypot(abs(dr), abs(dc))]
