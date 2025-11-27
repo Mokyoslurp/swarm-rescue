@@ -33,5 +33,12 @@ class DronePose(Pose):
 
         return poses
 
+    def __add__(self, other: object) -> Self:
+        if isinstance(other, DronePose):
+            return DronePose(
+                self.position + other.position, self.orientation + other.orientation
+            )
+        return self
+
     def __str__(self) -> str:
         return f"X = {self.x} ; Y = {self.y}"
