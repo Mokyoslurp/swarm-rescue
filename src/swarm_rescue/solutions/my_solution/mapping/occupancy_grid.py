@@ -133,7 +133,18 @@ class OccupancyGrid(Grid):
             else:
                 frontiers.append(Frontier([point]))
 
-        return frontiers
+        max_size = 0
+        for frontier in frontiers:
+            size = len(frontier.points)
+            if size > max_size:
+                max_size = size
+
+        frontiers_cleaned = frontiers.copy()
+        for frontier in frontiers:
+            if len(frontier.points) < max_size - 5:
+                frontiers_cleaned.remove(frontier)
+
+        return frontiers_cleaned
 
     def get_obstacles(self) -> list[tuple[int, int, float]]:
         """Gets the obstacles of the grid
