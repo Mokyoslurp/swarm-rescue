@@ -30,9 +30,7 @@ class PIDController(AbstractController):
             # Extract errors
             x_error = self.setpoint.x - current_pose.x
             y_error = self.setpoint.y - current_pose.y
-            r_error = float(
-                normalize_angle(self.setpoint.orientation - current_pose.orientation)
-            )
+            r_error = float(normalize_angle(self.setpoint.yaw - current_pose.yaw))
 
             # Commands computation
             x_command = (
@@ -60,8 +58,8 @@ class PIDController(AbstractController):
             self.previous_error = [x_error, y_error, r_error]
 
             # Transform commands in drone frame
-            cos_r = np.cos(current_pose.orientation)
-            sin_r = np.sin(current_pose.orientation)
+            cos_r = np.cos(current_pose.yaw)
+            sin_r = np.sin(current_pose.yaw)
             forward = cos_r * x_command + sin_r * y_command
             lateral = cos_r * y_command - sin_r * x_command
 

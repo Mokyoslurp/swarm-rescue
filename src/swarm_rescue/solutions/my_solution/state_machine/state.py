@@ -124,7 +124,7 @@ class State(ABC):
     def semantic_measure_to_pose(
         self, angle: float, distance: float, drone: DroneTemplate
     ) -> DronePose:
-        total_angle = angle + drone.pose.orientation
+        total_angle = angle + drone.pose.yaw
 
         delta_pose = DronePose(
             distance * np.array([np.cos(total_angle), np.sin(total_angle)]),

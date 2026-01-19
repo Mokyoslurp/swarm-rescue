@@ -4,7 +4,7 @@ import numpy as np
 from swarm_rescue.simulation.ray_sensors.drone_lidar import DroneLidar
 from swarm_rescue.simulation.utils.constants import MAX_RANGE_LIDAR_SENSOR
 from swarm_rescue.simulation.utils.grid import Grid
-from swarm_rescue.simulation.utils.pose import Pose
+from swarm_rescue.solutions.my_solution.drone_pose import DronePose
 from swarm_rescue.solutions.my_solution.mapping.frontier import Frontier
 from swarm_rescue.solutions.my_solution.mapping.vertex import Vertex
 from swarm_rescue.solutions.my_solution.planning.graph import GraphADT
@@ -36,7 +36,7 @@ class OccupancyGrid(Grid):
         self.grid = np.zeros((self.x_max_grid, self.y_max_grid))
         self.zoomed_grid = np.empty((self.x_max_grid, self.y_max_grid))
 
-    def update_grid(self, pose: Pose):
+    def update_grid(self, pose: DronePose):
         """Bayesian map update with new observation
 
         Args:
@@ -47,8 +47,8 @@ class OccupancyGrid(Grid):
         lidar_angles = self.lidar.ray_angles[::EVERY_N].copy()
 
         # Compute cos and sin of the absolute angle of the lidar
-        cos_rays = np.cos(lidar_angles + pose.orientation)
-        sin_rays = np.sin(lidar_angles + pose.orientation)
+        cos_rays = np.cos(lidar_angles + pose.yaw)
+        sin_rays = np.sin(lidar_angles + pose.yaw)
 
         max_range = MAX_RANGE_LIDAR_SENSOR * 0.9
 
@@ -59,19 +59,17 @@ class OccupancyGrid(Grid):
         lidar_dist_empty = np.maximum(lidar_dist - LIDAR_DIST_CLIP, 0.0)
         # All values of lidar_dist_empty_clip are now <= max_range
         lidar_dist_empty_clip = np.minimum(lidar_dist_empty, max_range)
-        points_x = pose.position[0] + np.multiply(lidar_dist_empty_clip, cos_rays)
-        points_y = pose.position[1] + np.multiply(lidar_dist_empty_clip, sin_rays)
+        points_x = pose.x + np.multiply(lidar_dist_empty_clip, cos_rays)
+        points_y = pose.y + np.multiply(lidar_dist_empty_clip, sin_rays)
 
         for pt_x, pt_y in zip(points_x, points_y):
-            self.add_value_along_line(
-                pose.position[0], pose.position[1], pt_x, pt_y, EMPTY_ZONE_VALUE
-            )
+            self.add_value_along_line(pose.x, pose.y, pt_x, pt_y, EMPTY_ZONE_VALUE)
 
         # For obstacle zones, all values of lidar_dist are < max_range
         select_collision = lidar_dist < max_range
 
-        points_x = pose.position[0] + np.multiply(lidar_dist, cos_rays)
-        points_y = pose.position[1] + np.multiply(lidar_dist, sin_rays)
+        points_x = pose.x + np.multiply(lidar_dist, cos_rays)
+        points_y = pose.y + np.multiply(lidar_dist, sin_rays)
 
         points_x = points_x[select_collision]
         points_y = points_y[select_collision]
@@ -79,7 +77,7 @@ class OccupancyGrid(Grid):
         self.add_points(points_x, points_y, OBSTACLE_ZONE_VALUE)
 
         # the current position of the drone is free !
-        self.add_points(pose.position[0], pose.position[1], FREE_ZONE_VALUE)
+        self.add_points(pose.x, pose.y, FREE_ZONE_VALUE)
 
         # threshold values
         self.grid = np.clip(self.grid, THRESHOLD_MIN, THRESHOLD_MAX)

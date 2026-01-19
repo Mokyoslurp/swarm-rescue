@@ -38,7 +38,8 @@ class MyDroneSolution(DroneTemplate):
         self.kalman_filter.step(self.previous_command, measurement=measurements)
 
         self.pose = DronePose(
-            np.array([self.kalman_filter.x, self.kalman_filter.y]),
+            self.kalman_filter.x,
+            self.kalman_filter.y,
             self.kalman_filter.theta,
         )
 
